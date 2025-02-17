@@ -9,15 +9,12 @@
       <div id="container" ref="container" class="container"></div>
       <!-- 悬浮提示框 -->
       <div v-if="tooltip.visible" class="tooltip" :style="{ top: tooltip.y + 'px', left: tooltip.x + 'px' }">
-        <strong>服务名:</strong> {{ tooltip.data.serviceName }} <br>
+        <strong>服务名:</strong> <span style="font-weight: bold;color: red;">{{ tooltip.data.serviceName }} </span><br>
         <strong>方法名:</strong> {{ tooltip.data.methodName }} <br>
         <strong>描述:</strong> {{ tooltip.data.methodDesc }} <br>
         <strong>路径:</strong> {{ tooltip.data.methodFullPath }}<br>
         <strong>源代码:</strong>
-        <div class="source-code">
-          {{ tooltip.data.sourceCode }}
-        </div>
-
+        <pre class="source-code"><code ref = "sourceCode" class="language-java"></code></pre>
       </div>
 
     </div>
@@ -27,7 +24,7 @@
 <script>
 import axios from 'axios';
 import Prism from 'prismjs';
-import 'prismjs/themes/prism-okaidia.css';
+import 'prismjs/themes/prism-dark.css';
 import { Graph } from '@antv/x6';
 export default {
   name: 'HelloWorld',
@@ -58,10 +55,14 @@ export default {
         this.$refs.codeBlock.textContent = this.responseData;
         Prism.highlightElement(this.$refs.codeBlock);
       }
+      if(this.$refs.sourceCode){
+        this.$refs.sourceCode.textContent = this.tooltip.data.sourceCode;
+        Prism.highlightElement(this.$refs.sourceCode);
+      }
     },
     async fetchData() {
       try {
-        const response = await axios.post(`http://localhost:8081/api/getSourceCode`, {
+     const response = await axios.post(`http://localhost:8082/api/getSourceCode`, {
           path: '/api/getSourceCode1'
         });
         this.responseData = JSON.stringify(response.data, null, 2);
@@ -127,7 +128,7 @@ export default {
       // 开始解析 JSON
       parseTree(JSON.parse(this.responseData));
       // 监听鼠标悬浮事件，显示 tooltip
-      this.graph.on('node:mouseenter', ({ node, e }) => {
+      this.graph.on('node:click', ({ node, e }) => {
         const nodeData = node.getData() || {}
         this.tooltip = {
           visible: true,
@@ -144,7 +145,7 @@ export default {
       })
 
       // 鼠标移动时更新 tooltip 位置
-      this.graph.on('node:mousemove', ({ e }) => {
+      this.graph.on('node:click', ({ e }) => {
         if (this.tooltip.visible) {
           this.tooltip.x = e.clientX
           this.tooltip.y = e.clientY
@@ -179,11 +180,12 @@ export default {
   white-space: pre-wrap;
   /* 允许正常换行 */
   /* overflow: scroll; */
-  width: 100%;
+  width: 94%;
   height: auto;
-  background-color: rgb(24, 79, 79);
+  /* background-color: rgb(24, 79, 79); */
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-
+  height: 200px;
+  overflow: auto;
 }
 
 .graph {
@@ -203,9 +205,9 @@ export default {
   color: white;
   padding: 8px 12px;
   border-radius: 6px;
-  font-size: 20px;
+  font-size: 15px;
   text-align: left;
-  pointer-events: none;
+  /* pointer-events: none; */
   white-space: nowrap;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
   /* transition: opacity 0.2s; */
